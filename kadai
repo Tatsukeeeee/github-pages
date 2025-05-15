@@ -1,0 +1,58 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFSIZE 1024
+#define MAX_SEQ_NUM 30 
+#define MAX_GENE_NUM 8 
+char g_motif[MAX_SEQ_NUM][BUFSIZE]; 
+
+struct promoter{
+  char name[BUFSIZE];
+  char seq[BUFSIZE];
+}g_pro[MAX_GENE_NUM]; 
+
+int read_multi_seq(char* filename){
+  int seq_num = 0;
+  char buffer[BUFSIZE];
+  FILE *fp = fopen("motif/MATa1","r");
+
+  if(fp == NULL){
+    printf("motif_region_file open error.\n");
+    exit(1); //ファイルが開けなかった場合プログラムを終了
+  }
+
+  while(fscanf(fp, "%s", buffer) != EOF){ //プログラムから一行ずつ読み込む
+    if(buffer[strlen(buffer)-1]=='\n'){
+      buffer[strlen(buffer)-1]='\0'; //改行を切り落とす
+    }
+    strcpy(g_motif[seq_num],buffer); //結合部位配列を保存
+    seq_num++;
+  }
+  return seq_num;
+}
+
+int read_promoter(char *filename){
+  int gene_num = 0;  
+  char buffer[BUFSIZE];
+  FILE *fp = fopen("motif/MATa1","r");
+
+  if(fp == NULL){
+    printf("scorefile open error.\n");
+    exit(1);
+  }
+
+  while(fscanf(fp, "%s", buffer) != EOF){
+    if(buffer[strlen(buffer)-1]=='\n'){
+      buffer[strlen(buffer)-1]='\0';
+    }
+    
+    if(buffer[0]=='>'){
+      strcpy(g_pro[gene_num].name,buffer+1); 
+    }else{
+      strcpy(g_pro[gene_num].seq,buffer);
+      gene_num++;
+    }    
+  }
+  return gene_num;
+}
