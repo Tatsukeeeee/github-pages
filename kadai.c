@@ -5,7 +5,7 @@
 #define BUFSIZE 1024 //ファイルから読み込む一行の最大文字数
 #define MAX_SEQ_NUM 30 //一つの転写因子に対して与えられる結合部位配列の最大数
 #define MAX_GENE_NUM 8 /*与えられるプロモータ領域の最大遺伝子数*/
-
+#define syoberu 5
 char g_motif[MAX_SEQ_NUM][BUFSIZE]; //転写因子の結合部位配列を保存する配列
 
 struct promoter{
@@ -66,8 +66,8 @@ int base_to_index(char base) {
     if (base == 'C') return 1;
     if (base == 'G') return 2;
     if (base == 'T') return 3;
-    return -1; // エラー処理（ありえない塩基）
-}
+    else return -1; // エラー処理（ありえない塩基）
+  }
 
 
 int main(int argc, char* argv[]){
@@ -78,25 +78,32 @@ int main(int argc, char* argv[]){
     printf("%s\n",g_motif[i]); //読み込んだ転写因子の結合部位配列を表示
   }
   printf("\n");
+  int gene_num = read_promoter(argv[2]);  //２番目の引数で指定した遺伝子のプロモータ領域を読み込む
+  
+  printf("promoter_sequence:\n");
+  for(int i = 0; i < gene_num; i++){
+    printf(">%s\n", g_pro[i].name); //読み込んだプロモータ領域を表示
+    printf("%s\n", g_pro[i].seq);
+  }
 
   int SEQ_LENGTH=0;
-for(int i=0;i<30;i++){
-if(g_motif[i][0]=='\0'){
-  break;
-}
-SEQ_LENGTH++;
-}
-
-  int NUM_SEQUENCES=0;
 for(int i=0;i<30;i++){
 if(g_motif[0][i]=='\0'){
   break;
 }
+SEQ_LENGTH++;
+}
+  int NUM_SEQUENCES=0;
+for(int i=0;i<30;i++){
+if(g_motif[i][0]=='\0'){
+  break;
+}
 NUM_SEQUENCES++;
 }
+
 int table[4][BUFSIZE] = {0};
- for (int i = 0; i < SEQ_LENGTH; ++i) {
-        for (int j = 0; j < NUM_SEQUENCES; ++j) {
+ for (int i = 0; i < NUM_SEQUENCES; ++i) {
+        for (int j = 0; j < SEQ_LENGTH; ++j) {
             int idx = base_to_index(g_motif[i][j]);
             if (idx != -1) {
                 table[idx][j]++;
@@ -104,7 +111,7 @@ int table[4][BUFSIZE] = {0};
         }
     }
     for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < NUM_SEQUENCES; j++) {
+        for (int j = 0; j < SEQ_LENGTH; j++) {
             printf("%d\t", table[i][j]);
         }
         printf("\n");
@@ -112,8 +119,8 @@ int table[4][BUFSIZE] = {0};
 printf("\n");
 float pi[4][BUFSIZE]={0};
 for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < NUM_SEQUENCES; j++) {
-          pi[i][j]=(float)(table[i][j]+1)/(float)(SEQ_LENGTH+4);  
+        for (int j = 0; j < SEQ_LENGTH; j++) {
+          pi[i][j]=(float)(table[i][j]+1)/(float)(NUM_SEQUENCES+4);  
           printf("%f\t", pi[i][j]);
         }
         printf("\n");
@@ -133,9 +140,9 @@ for(int i=0;i<4;i++){
 printf("\n");
 
 
-float si[4][BUFSIZ];
+float si[4][BUFSIZ]={0};
 for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < NUM_SEQUENCES; j++) {
+        for (int j = 0; j < SEQ_LENGTH; j++) {
           si[i][j]=(float)log(pi[i][j]/q[i]);  
           printf("%f\t", si[i][j]);
         }
@@ -144,15 +151,32 @@ for (int i = 0; i < 4; i++) {
 printf("\n");
 
 
-
-
-  int gene_num = read_promoter(argv[2]);  //２番目の引数で指定した遺伝子のプロモータ領域を読み込む
-  
-  printf("promoter_sequence:\n");
-  for(int i = 0; i < gene_num; i++){
-    printf(">%s\n", g_pro[i].name); //読み込んだプロモータ領域を表示
-    printf("%s\n", g_pro[i].seq);
+float hot[8][BUFSIZE];
+for (int i = 0; i < 8; i++){
+for (int j = 0; j < BUFSIZE; j++) {
+    hot[i][j] = 0.0f;
+}}
+for(int a=0;a<8;a++){ 
+  for(int i=0;;i++){
+        for (int j = i; j < i+SEQ_LENGTH; j++) {
+            int idx = base_to_index(g_pro[a].seq[j]);
+            //printf("a:%d,j:%d,base:%c\n",a,j,g_pro[a].seq[j]);
+            if (idx == 0) {hot[a][i]+=si[0][j-i];}
+            if (idx == 1) {hot[a][i]+=si[1][j-i];}
+            if (idx == 2) {hot[a][i]+=si[2][j-i];}
+            if (idx == 3) {hot[a][i]+=si[3][j-i];}
+        }
+        if(hot[a][i]>=syoberu){printf("pro:%s\nposition:%d\nhit(",g_pro[a].name,i);
+          for(int j=i;j<i+SEQ_LENGTH;j++){
+            printf("%c",g_pro[a].seq[j]);
+          }
+          printf(")= %f\n",hot[a][i]);
+        printf("\n");}
+        if(base_to_index(g_pro[a].seq[i+SEQ_LENGTH])==-1){break;}
+    }
   }
+
+
 
   return 0;
 }
