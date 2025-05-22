@@ -151,26 +151,26 @@ for (int i = 0; i < 4; i++) {
 printf("\n");
 
 
-float hot[8][BUFSIZE];
+float hit[8][BUFSIZE];
 for (int i = 0; i < 8; i++){
 for (int j = 0; j < BUFSIZE; j++) {
-    hot[i][j] = 0.0f;
+    hit[i][j] = 0.0f;
 }}
 for(int a=0;a<8;a++){ 
   for(int i=0;;i++){
         for (int j = i; j < i+SEQ_LENGTH; j++) {
             int idx = base_to_index(g_pro[a].seq[j]);
             //printf("a:%d,j:%d,base:%c\n",a,j,g_pro[a].seq[j]);
-            if (idx == 0) {hot[a][i]+=si[0][j-i];}
-            if (idx == 1) {hot[a][i]+=si[1][j-i];}
-            if (idx == 2) {hot[a][i]+=si[2][j-i];}
-            if (idx == 3) {hot[a][i]+=si[3][j-i];}
+            if (idx == 0) {hit[a][i]+=si[0][j-i];}
+            if (idx == 1) {hit[a][i]+=si[1][j-i];}
+            if (idx == 2) {hit[a][i]+=si[2][j-i];}
+            if (idx == 3) {hit[a][i]+=si[3][j-i];}
         }
-        if(hot[a][i]>=syoberu){printf("pro:%s\nposition:%d\nhit(",g_pro[a].name,i);
+        if(hit[a][i]>=syoberu){printf("pro:%s\nposition:%d\nhit(",g_pro[a].name,i);
           for(int j=i;j<i+SEQ_LENGTH;j++){
             printf("%c",g_pro[a].seq[j]);
           }
-          printf(")= %f\n",hot[a][i]);
+          printf(")= %f\n",hit[a][i]);
         printf("\n");}
         if(base_to_index(g_pro[a].seq[i+SEQ_LENGTH])==-1){break;}
     }
